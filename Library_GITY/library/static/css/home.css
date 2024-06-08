@@ -1,0 +1,92 @@
+.display-4 {
+  font-size: 300%;
+  text-align: center;
+  background-color: black;
+  color: white;
+}
+
+h1, h2, h3 {
+  text-align: center;
+}
+
+.topnav p a {
+  float: left;
+  display: block;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+  margin: auto;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.nav-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.nav-links a {
+    margin-right: 10px;
+}
+
+.greeting p {
+    margin: 0;
+}
+
+p {
+  margin-bottom: 10px;
+}
+
+main ul li h1 {
+  text-align: center;
+}
+
+.contact {
+  margin-top: 20px;
+  border: 1px solid #ccc;
+  padding: 20px;
+}
+
+.contact form {
+  margin-top: 10px;
+}
+
+.wrapper {
+  margin-top: 20px;
+  text-align: center;
+  background-color: #eee;
+  padding: 10px;
+}
+
+/* ハンバーガーメニュー */
+.menu-icon {
+  color: blue;
+  font-size: 24px;
+  cursor: pointer;
+  display: block;
+}
+
+.menu {
+  display: none;
+  background-color: #333;
+  padding: 10px;
+  position: absolute;
+  width: 100%;
+}
+
+.menu p {
+  margin: 5px 0;
+}
+
+.menu a {
+  color: #fff;
+  text-decoration: none;
+}
+
+#menu-toggle:checked + .nav-links .menu {
+  display: block;
+}

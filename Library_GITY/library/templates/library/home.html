@@ -1,0 +1,124 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GITY</title>
+    <link rel="stylesheet" type="text/css" href="{% static '/css/home.css' %}"/>
+</head>
+
+<body class="container">
+    <nav>
+        <h1 class="display-4 text-primary">GITY LIBRARY</h1>
+        <div class="nav-bar">
+            <div class="nav-links">
+                <div class="topnav">
+                    <input type="checkbox" id="menu-toggle">
+                    <label for="menu-toggle" class="menu-icon">&#9776;</label>
+                    <div class="menu">
+                        <p><a href="{% url 'choose' %}">管理者ログイン</a></p>
+                        <p><a href="{% url 'registration'%}">他サイトQRコード登録</a></p>
+                        <p><a href="{% url 'book_list' 1 %}">図書一覧</a></p>
+                        <p><a href="{% url 'user_history'%}">履歴</a></p>
+                        <p><a href="{% url 'logout' %}">ログアウト</a></p>
+                    </div>    
+                </div>
+            </div>
+        </div>
+        
+        <!-- QRコードの表示 -->
+        {% if qr_code_url %}
+            <img src="{% static qr_code_url %}" alt="QRコード">
+        {% else %}
+            <p>QRコードがありません。</p>
+        {% endif %}
+
+        <!-- QRコード更新ボタン -->
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" name="update_qr_button">QRコードを更新する</button>
+        </form>
+        <h2>ようこそ、{{ user_email }}さん</h2>
+        <h3>現在{{ current_rental_count }}冊貸し出し中です</h3>
+    </nav>
+
+    <section>
+        <h3>欲しい本</h3>
+    </section>
+
+    <aside>
+        <h3>本の延長は下のリストから</h3>
+    </aside>
+
+    <hr>
+
+    {% if issued_books %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>借りている本</th>
+                    <th>レンタル日</th>
+                    <th>返却日</th>
+                    <th>Extension Count</th>
+                    <th>延長</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for book in issued_books %}
+                    <tr>
+                        <td>{{ book.book_name }}</td>
+                        <td>{{ book.issue_date }}</td>
+                        <td>{{ book.return_date }}</td>
+                        <td>{{ book.extension_count }}</td>
+                        <td>
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="extend_button" value="{{ book.id }}">
+                            <button type="submit">延長</button>
+                        </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>現在、借りている本はありません。</p>
+    {% endif %}
+
+    <div class="contact">
+        <div class="contact-title">
+            <h1>お問い合わせ</h1>
+            <p>comment</p>
+        </div>
+
+        <div class="contact-content">
+            <form action="a.php" method="post" name="contact-form">
+                メール:<input name="メールアドレス" type="text" value="" /><br>
+                お問い合わせ内容：<br />
+                <textarea name="お問い合わせ内容" placeholder="ここにお問い合わせ内容を入力してください"></textarea><br>
+                <input type="submit" value="送信" />
+            </form>
+        </div>
+    </div>
+
+    <div class="wrapper">
+        <p><small>&copy; 2023 </small></p>
+    </div>
+
+    <!--ハンバーガーメニューのためのJS-->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var menuToggle = document.getElementById('menu-toggle');
+            var menu = document.querySelector('.topnav');
+    
+            menuToggle.addEventListener('click', function () {
+            menu.classList.toggle('open');
+            });
+        });
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <title>仮GityLibrary</title>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" crossorigin="anonymous">
+        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+        <!-- 外部CSSファイルのリンク -->
+    
+    </head>
+    <body>
+        <!-- ホームに戻るボタン -->
+        <a href="{% url 'index' %}" class="btn btn-primary mt-2">ホームに戻る</a>
+
+        <h2>{{ username }}のレンタル履歴</h2>
+        {% if user_issued_data %}
+            <table class="table">
+                <tr>
+                    <th>本の名前</th>
+                    <th>レンタル日</th>
+                    <th>返却日</th>
+                    <th>ステータス</th>
+                </tr>
+                {% for history in user_issued_data %}
+                <tr>
+                    <td>{{ history.book_name }}</td>
+                    <td>{{ history.issue_date }}</td>
+                    <td>{{ history.return_date }}</td>
+                    <td>{{ history.status }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        {% else %}
+            <p>レンタル履歴がありません。</p>
+        {% endif %}
+    </body>
+</html>
