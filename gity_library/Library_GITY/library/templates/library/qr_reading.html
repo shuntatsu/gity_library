@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="utf-8">
+    <title>QR Code Scanner</title>
+    <script src="{% static '/js/qr_reading.js' %}"></script>
+</head>
+
+<body>
+    <canvas id="canvas"></canvas>
+    <div id="overlay"></div>
+
+    <script src="https://cdn.rawgit.com/cozmo/jsQR/master/dist/jsQR.js"></script>
+    <script>
+        const queryString = window.location.search;
+        const urlParams = new URLSearchParams(queryString);
+        const BarCode = urlParams.get('barcode');
+
+        var video = document.createElement('video');
+        var canvasElement = document.getElementById('canvas');
+        var canvas = canvasElement.getContext('2d');
+        var isReadQR = false;
+        var lastScannedTime = 0;
+
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+            .then((stream) => {
+                video.srcObject = stream;
+                video.setAttribute('playsinline', true);
+                video.play();
+                requestAnimationFrame(tick);
+            })
+            .catch((error) => {
+                console.error('Error accessing camera:', error);
+            });
+
+        function tick() {
+            if (!isReadQR && video.readyState === video.HAVE_ENOUGH_DATA) {
+                canvasElement.height = video.videoHeight;
+                canvasElement.width = video.videoWidth;
+                canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
+                var imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
+                var code = jsQR(imageData.data, imageData.width, imageData.height, {
+                    inversionAttempts: 'dontInvert',
+                });
+                if (code && code.data) {
+                    var qrCodeValue = code.data;
+                    isReadQR = true;
+                    var barcodeValue = BarCode; // qr_code の値を使用
+                    var xhr = new XMLHttpRequest();
+                    var url = '/library/book_create?barcode=' + barcodeValue + '&qrcode=' + qrCodeValue; // POSTリクエストを送信するURL
+                    xhr.open('POST', url, true);
+                    xhr.setRequestHeader('Content-Type', 'application/json');
+                    xhr.onreadystatechange = function () {
+                        if (xhr.readyState === XMLHttpRequest.DONE) {
+                            if (xhr.status === 200) {
+                                var redirectURL = url;
+                                window.location.href = redirectURL; // リダイレクト
+                            } else {
+                                console.error('バーコードやqrコードが見つからない');
+                            }
+                        }
+                    };
+                    var params = JSON.stringify({ barcode: barcodeValue, qrcode: qrCodeValue }); // リクエストパラメーターを設定
+                    xhr.send(params); // リクエストを送信
+                } else {
+                    console.log('入力はqrコードではありません。');
+                }
+            }
+            requestAnimationFrame(tick);
+        }
+    </script>
+</body>
+
+</html>

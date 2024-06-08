@@ -1,0 +1,53 @@
+<!--返すページ-->
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>仮GityLibrary</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <!-- 外部CSSファイルのリンク -->
+</head>    
+
+<body class="container">
+    <nav>
+        <h1 class="display-4 text-primary">返却</h1>
+    </nav>
+    
+    <main>
+        <p align=left>この本を返しますか？</p>
+            <img src="#" alt="本の画像">
+        
+            <table class="table">
+                {% for item in date %}
+                <tr>
+                    <th>タイトル</th>
+                    <th>{{item.book_name}}</th>
+                </tr>
+                <tr>
+                    <th>著者</th>
+                    <th>{{item.author_name}}</th>
+                </tr>
+                <tr>
+                    <th>バーコード</th>
+                    <th>{{item.bar_code}}</th>
+                </tr>
+                <tr>
+                    <th>所蔵数</th>
+                    <th>{{item.quantity}}</th>
+                </tr>
+                <tr>
+                    <th>追加日</th>
+                    <th>{{item.book_add_day}}</th>
+                </tr>    
+                {% endfor %}
+        <form method="POST">
+            {% csrf_token %}
+            <button type="submit">はい</button>
+        </form>
+        <h1><a href="/library/">いいえ</a></h1>
+    </main>
+
+</body>
