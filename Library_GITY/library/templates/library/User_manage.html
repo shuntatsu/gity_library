@@ -6,6 +6,7 @@
     <meta charset="utf-8">
     <title>{{ title }}</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" crossorigin="anonymous">
+    <link rel="stylesheet" href="{% static 'css/user_manage.css' %}">
 </head>
 
 <body class="container">
@@ -21,9 +22,7 @@
     </form>
     <form action="{% url 'user_manage' 1 %}">
         {% csrf_token %}
-        <tr><th></th><tb>
         <input type="submit" value="reset" class="btn btn-primary mt-2">
-        </tb></tr>
     </form>
     <hr>
 
@@ -33,10 +32,10 @@
             <th>現在の合計レンタル数/レンタル上限</th>
         </tr>
         {% for user_data in data %}
-            <tr>
-                <td>{{ user_data.user_email }}</td>
-                    <td>{{ user_data.current_rental_count }}</td>
-            </tr>
+        <tr>
+            <td>{{ user_data.user_email }}</td>
+            <td>{{ user_data.current_rental_count }}</td>
+        </tr>
         {% endfor %}
     </table>
 
@@ -56,49 +55,48 @@
         </thead>
         <tbody>
             {% for issued_data in data %}
-                <tr>
-                    <td>{{ issued_data.user_email }}</td>
-                    <td>
-                        {% for book in issued_data.issued_books %}
-                            {{ book.book_name }} ({{ book.book_field }})<br>
-                        {% endfor %}
-                    </td>
-                    <td>
-                        {% for book in issued_data.issued_books %}
-                            {{ book.issue_date }} (Extension Count: {{ book.extension_count }})<br>
-                        {% endfor %}
-                    </td>
-                    <td>
-                        {% for book in issued_data.issued_books %}
-                            {{ book.issue_date }}<br>
-                        {% endfor %}
-                    </td>
-                    <td>
-                        {% for book in issued_data.issued_books %}
-                            {{ book.return_date }}<br>
-                        {% endfor %}
-                    </td>
-                </tr>
+            <tr>
+                <td>{{ issued_data.user_email }}</td>
+                <td>
+                    {% for book in issued_data.issued_books %}
+                    {{ book.book_name }} ({{ book.book_field }})<br>
+                    {% endfor %}
+                </td>
+                <td>
+                    {% for book in issued_data.issued_books %}
+                    {{ book.issue_date }} (Extension Count: {{ book.extension_count }})<br>
+                    {% endfor %}
+                </td>
+                <td>
+                    {% for book in issued_data.issued_books %}
+                    {{ book.issue_date }}<br>
+                    {% endfor %}
+                </td>
+                <td>
+                    {% for book in issued_data.issued_books %}
+                    {{ book.return_date }}<br>
+                    {% endfor %}
+                </td>
+            </tr>
             {% endfor %}
         </tbody>
     </table>
 
     <ul class="pagination">
-        {# ページネーションの表示を修正 #}
         {% if data.has_previous %}
-            <li class="page-item">
-                <a class="page-link" href="{% url 'user_manage' 1 %}">&laquo; first</a>
-            </li>
-            <li class="page-item">
-                <a class="page-link" href="{% url 'user_manage' data.previous_page_number %}">&laquo; prev</a>
-            </li>
+        <li class="page-item">
+            <a class="page-link" href="{% url 'user_manage' 1 %}">&laquo; first</a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="{% url 'user_manage' data.previous_page_number %}">&laquo; prev</a>
+        </li>
         {% else %}
-            <li class="page-item disabled">
-                <span class="page-link">&laquo; first</span>
-            </li>
-            <li class="page-item disabled">
-                <span class="page-link">&laquo; prev</span>
-            </li>
+        <li class="page-item disabled">
+            <span class="page-link">&laquo; first</span>
+        </li>
+        <li class="page-item disabled">
+            <span class="page-link">&laquo; prev</span>
+        </li>
         {% endif %}
 
         <li class="page-item">
@@ -106,21 +104,20 @@
         </li>
 
         {% if data.has_next %}
-            <li class="page-item">
-                <a class="page-link" href="{% url 'user_manage' data.next_page_number %}">next &raquo;</a>
-            </li>
-            <li class="page-item">
-                <a class="page-link" href="{% url 'user_manage' data.paginator.num_pages %}">last &raquo;</a>
-            </li>
+        <li class="page-item">
+            <a class="page-link" href="{% url 'user_manage' data.next_page_number %}">next &raquo;</a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="{% url 'user_manage' data.paginator.num_pages %}">last &raquo;</a>
+        </li>
         {% else %}
-            <li class="page-item disabled">
-                <span class="page-link">next &raquo;</span>
-            </li>
-            <li class="page-item disabled">
-                <span class="page-link">last &raquo;</span>
-            </li>
+        <li class="page-item disabled">
+            <span class="page-link">next &raquo;</span>
+        </li>
+        <li class="page-item disabled">
+            <span class="page-link">last &raquo;</span>
+        </li>
         {% endif %}
     </ul>
 </body>
 </html>
-

@@ -43,7 +43,8 @@ from authlib.integrations.django_client import OAuth
 
 from .backends import make_qr
 from .forms import BookForm, SearchBookForm, SearchUserForm
-from .models import Book, CustomUser, IssuedData, QRCode
+from .models import Book, CustomUser, IssuedData, QRCode, Want_Book
+from .qr import generate_qr_code_pdf
 
 OAUTH = OAuth()
 OAUTH.register(
@@ -59,7 +60,6 @@ OAUTH.register(
         'response_type': 'code',
     },
 )
-
 
 def login_op(request):
     """
@@ -202,6 +202,51 @@ def registration(request):
         'qr_data': qr_data,
     }
     return render(request, 'library/registration.html', context)
+
+#########################################################################################################
+#########################################################################################################
+#########################################################################################################
+@login_required
+def want_book(request):
+    if request.method == 'POST':
+        form = BookForm(request.POST)
+        if form.is_valid():
+            book = form.save(commit=False)
+            book.user = request.user
+            
+            # 国立国会図書館サーチAPIから書籍情報を取得
+            title = book.title
+            url = f'https://ndlsearch.ndl.go.jp/api/sru?operation=searchRetrieve&query=title={title}&maximumRecords=1&recordSchema=dcndl_simple'
+            response = requests.get(url)
+            data = response.text
+            parser = xml.etree.ElementTree.fromstring(data)
+            record = parser.find('.//{http://www.loc.gov/zing/srw/}record')
+            
+            if record:
+                title_element = record.find('.//{http://purl.org/dc/elements/1.1/}title')
+                author_element = record.find('.//{http://purl.org/dc/elements/1.1/}creator')
+                cover_element = record.find('.//{http://ndl.go.jp/dcndl/terms/}coverurl')
+                
+                book.title = title_element.text if title_element else ''
+                book.author = author_element.text if author_element else ''
+                book.cover_url = cover_element.text if cover_element else ''
+            
+            # Amazon Product Advertising APIから購入リンクを取得
+            url = f'https://webservices.amazon.co.jp/paapi5/searchitems?title={book.title}&author={book.author}&SearchIndex=Books'
+            response = requests.get(url)
+            data = response.json()
+            
+            if data['SearchResult'] and data['SearchResult']['Items']:
+                item = data['SearchResult']['Items'][0]
+                book.purchase_link = item['DetailPageURL']
+            
+            book.save()
+            return redirect('library/want_book')
+    else:
+        form = BookForm()
+    
+    books = Book.objects.all()
+    return render(request, 'library/want_book.html', {'form': form, 'books': books})
 
 # ログインが必要なページであることを示すデコレータ
 @csrf_exempt
@@ -599,50 +644,6 @@ def qr_reading(request):
 def choose(request):
     # 管理者用のページを表示
     return render(request, 'library/choose.html')
-    
-# スーパーユーザーのみがアクセスできるようにするデコレータ
-@user_passes_test(is_superuser, login_url='/library/login/')
-def book_manage(request, page_num=1):
-    # 書籍データを取得
-    data = Book.objects.all()
-    # 検索フォームを初期化
-    form = SearchBookForm(request.POST or None)
-    # ページネーションされたデータを格納する変数
-    paginated_data = None
-    # メッセージの初期化
-    msg = ''
-    
-    # POSTリクエストの場合
-    if request.method == 'POST':
-        if form.is_valid():
-            # 検索キーワードを取得
-            find = form.cleaned_data.get('find')
-            # 著者名、書籍名、IDで書籍を絞り込み
-            data = Book.objects.filter(Q(author_name__contains=find)|
-                                        Q(book_name__contains=find)|
-                                        Q(id__contains=find))
-            # ページネーションを適用
-            paginator = Paginator(data, 10)
-            paginated_data = paginator.get_page(page_num)
-            msg = 'Result: ' + str(data.count())
-    else:
-        # GETリクエストの場合
-        msg = 'search words...'
-        form = SearchBookForm()
-        # ページネーションを適用
-        paginator = Paginator(data, 10)
-        paginated_data = paginator.get_page(page_num)
-
-    # テンプレートに渡すパラメータを設定
-    params = {
-        'title': 'Book',
-        'message': msg,
-        'form': form,
-        'data': paginated_data,
-    }
-
-    # テンプレートをレンダリングして返す
-    return render(request, 'library/Book_manage.html', params)
 
 # スーパーユーザーのみがアクセスできるようにするデコレータ
 @csrf_exempt
@@ -735,97 +736,87 @@ def book_delete(request, num):
     }
     return render(request, 'library/Book_delete.html', params)
 
-# 管理者権限が必要なページであることを示すデコレータ
-@user_passes_test(is_superuser, login_url='/library/login/')
-@login_required(login_url='/library/login/')
-def user_manage(request, page_num=1):
-    # データベースからすべての貸出データを取得
-    issued_data = IssuedData.objects.all()
-    # 検索フォームを初期化
-    form = SearchUserForm(request.POST or None)
-    # ページネーションされたデータを格納する変数
-    paginated_data = None
-    # メッセージの初期化
+# ログインが必要なページであることを示すデコレータ
+@user_passes_test(lambda u: u.is_superuser, login_url='/library/login/')
+def book_manage(request, page_num=1):
+    """
+    書籍管理ページのビュー
+    """
+    # すべての書籍データを取得し、ID順に並べ替え
+    data = Book.objects.all().order_by('id')
+    # POSTデータがある場合はフォームを初期化
+    form = BookForm(request.POST or None)
     msg = ''
     
     # POSTリクエストの場合
     if request.method == 'POST':
         if form.is_valid():
-            # 検索キーワードを取得
-            find = form.cleaned_data.get('find')
-            
-            # ユーザーのメールアドレスで絞り込み
-            issued_data_by_user = IssuedData.objects.filter(user_id__email__icontains=find).distinct()
-            # 本の名前で絞り込み
-            issued_data_by_book = IssuedData.objects.filter(book__book_name__icontains=find).distinct().order_by('user_id__email')
-            # ユーザーまたは本のいずれかで絞り込まれた貸出データを取得
-            issued_data = (issued_data_by_user | issued_data_by_book).distinct().order_by('user_id__email')
-            
-            if issued_data:
-                # ページネーションを適用
-                paginator = Paginator(issued_data, 10)
-                paginated_data = paginator.get_page(page_num)
-                msg = f'Result: {len(issued_data)}'
-            else:
-                paginated_data = []
-                msg = 'No results found.'
-    else:
-        # GETリクエストの場合
-        msg = 'search words...'
-        form = SearchUserForm()
-        # ページネーションを適用
-        paginator = Paginator(issued_data, 10)
-        paginated_data = paginator.get_page(page_num)
+            # フォームが有効な場合、書籍を保存
+            form.save()
+            msg = 'Book added successfully.'
+    
+    # ページネーションを適用
+    paginator = Paginator(data, 10)
+    paginated_data = paginator.get_page(page_num)
+    
+    # テンプレートに渡すパラメータを設定
+    params = {
+        'title': 'Book Management',
+        'form': form,
+        'message': msg,
+        'data': paginated_data,
+    }
+    # テンプレートをレンダリングして返す
+    return render(request, 'library/Book_manage.html', params)
 
+# スーパーユーザーのみがアクセスできるようにするデコレータ
+@user_passes_test(lambda u: u.is_superuser, login_url='/library/login/')
+def user_manage(request, page_num=1):
+    """
+    ユーザー管理ページのビュー
+    """
+    # すべての貸出データを取得
+    issued_data = IssuedData.objects.all()
+    # POSTデータがある場合はフォームを初期化
+    form = SearchUserForm(request.POST or None)
+    msg = ''
+    
+    # POSTリクエストの場合
+    if request.method == 'POST':
+        if form.is_valid():
+            # フォームが有効な場合、検索キーワードを取得
+            find = form.cleaned_data.get('find')
+            # ユーザーのメールアドレスで絞り込み
+            issued_data = IssuedData.objects.filter(user__email__icontains=find)
+            msg = f'Result: {issued_data.count()}'
+    
+    # ページネーションを適用
+    paginator = Paginator(issued_data, 10)
+    paginated_data = paginator.get_page(page_num)
+    
     # ユーザーデータのリストを初期化
     user_data = []
-    # ユーザーのメールアドレスを格納するセットを初期化
-    user_email_set = set()
-
-    # ページネーションされたデータに対してループを行う
     for data in paginated_data:
         # ユーザーのメールアドレスを取得
         user_email = data.user.email.split('@')[0]
+        # ユーザーが貸出中のデータを取得
+        issued_books = IssuedData.objects.filter(user=data.user, return_date__isnull=True)
+        # 現在の貸出数を取得
+        current_rental_count = issued_books.count()
         
-        # ユーザーのメールアドレスがセットにない場合
-        if user_email not in user_email_set:
-            # ユーザーメールアドレスをセットに追加
-            user_email_set.add(user_email)
-            # ユーザーが貸出中のデータを取得
-            issued_data_for_user = IssuedData.objects.filter(user=data.user)
-
-            # 現在の貸出数を初期化
-            current_rental_count = 0
-            # 貸出中の本のリストを初期化
-            issued_books = []
-
-            # ユーザーが貸出中の本に対してループを行う
-            for issued_book in issued_data_for_user:
-                book = issued_book.book
-                # 返却日がない場合
-                if issued_book.return_date is None:
-                    current_rental_count += 1
-                    issued_books.append({
-                        'book_name': book.book_name,
-                        'extension_count': issued_book.extension_count,
-                        'issue_date': issued_book.rental_date,
-                        'return_date': issued_book.rental_date + timedelta(weeks=max(0, 2 + issued_book.extension_count)),
-                    })
-
-            # ユーザーデータリストにユーザー情報を追加
-            user_data.append({
-                'user_email': user_email,
-                'current_rental_count': current_rental_count,
-                'issued_books': issued_books,
-            })
-
+        # ユーザーデータリストにユーザー情報を追加
+        user_data.append({
+            'user_email': user_email,
+            'current_rental_count': current_rental_count,
+            'issued_books': issued_books,
+        })
+    
     # テンプレートに渡すパラメータを設定
     params = {
-        'title': 'ユーザー一覧',
+        'title': 'User Management',
         'message': msg,
-        'data': user_data,
         'form': form,
+        'data': user_data,
     }
-
     # テンプレートをレンダリングして返す
     return render(request, 'library/User_manage.html', params)

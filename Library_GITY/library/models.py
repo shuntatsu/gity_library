@@ -117,3 +117,13 @@ class QRCode(models.Model):
         username = self.user.email.split('@')[0]
         return f"{username}\n{self.url}"
 
+class Want_Book(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    title = models.CharField(max_length=200)
+    author = models.CharField(max_length=100)
+    purchase_link = models.URLField()
+    reason = models.TextField()
+    purchaser = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='purchased_books')
+    
+    def __str__(self):
+        return self.title
