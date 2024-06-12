@@ -9,14 +9,14 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
 import random
 from datetime import datetime
+import io
+from django.http import FileResponse
 
 QR_CODES_PER_PAGE = 48  # 1ページあたりのQRコードの数
 
-num_qr = 0
-
-def generate_qr_code_pdf(filename, num_qr):
+def generate_qr_code_pdf(buffer, num_qr):
     # PDFの作成
-    pdf_file = canvas.Canvas(filename, pagesize=A4)
+    pdf_file = canvas.Canvas(buffer, pagesize=A4)
     width, height = A4
 
     # A4用紙に枠とQRコードを配置
@@ -70,10 +70,3 @@ def generate_qr_code_pdf(filename, num_qr):
             y_offset = (height - frame_size * 8) / 2
 
     pdf_file.save()
-
-    # PDFファイルを自動で印刷
-    print_pdf(filename)
-
-# PDFファイルを生成
-filename = "qr_codes_with_frames.pdf"
-generate_qr_code_pdf(filename, num_qr)
