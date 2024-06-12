@@ -738,7 +738,6 @@ def book_delete(request, num):
     }
     return render(request, 'library/Book_delete.html', params)
 
-# ログインが必要なページであることを示すデコレータ
 @user_passes_test(lambda u: u.is_superuser, login_url='/library/login/')
 def book_manage(request, page_num=1):
     """
@@ -749,7 +748,7 @@ def book_manage(request, page_num=1):
     # POSTデータがある場合はフォームを初期化
     form = BookForm(request.POST or None)
     msg = ''
-    
+
     # POSTリクエストの場合
     if request.method == 'POST':
         if form.is_valid():
@@ -757,16 +756,16 @@ def book_manage(request, page_num=1):
             form.save()
             msg = 'Book added successfully.'
         # Handle QR code generation POST request
-    if request.method == 'POST' and 'num_qr' in request.POST:
-        num_qr = int(request.POST['num_qr'])
-        
-        # Generate QR code PDF
-        buffer = io.BytesIO()
-        generate_qr_code_pdf(buffer, num_qr)
-        buffer.seek(0)
-        
-        # Return PDF as file response
-        return FileResponse(buffer, as_attachment=True, filename='qr_codes.pdf')
+        if 'num_qr' in request.POST:
+            num_qr = int(request.POST['num_qr'])
+            
+            # Generate QR code PDF
+            buffer = io.BytesIO()
+            generate_qr_code_pdf(buffer, num_qr)
+            buffer.seek(0)
+            
+            # Return PDF as file response
+            return FileResponse(buffer, as_attachment=True, filename='qr_codes.pdf')
     
     # ページネーションを適用
     paginator = Paginator(data, 10)
