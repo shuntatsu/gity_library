@@ -9,10 +9,6 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
 import random
 from datetime import datetime
-import os
-import win32api
-import win32print
-import pywintypes
 
 QR_CODES_PER_PAGE = 48  # 1ページあたりのQRコードの数
 
@@ -75,9 +71,6 @@ def generate_qr_code_pdf(filename, num_qr):
 
     # PDFファイルを自動で印刷
     print_pdf(filename)
-
-# 使用例
-num_qr = int(input("生成するQRコードの総数を入力してください: "))
 
 # PDFファイルを生成
 filename = "qr_codes_with_frames.pdf"
