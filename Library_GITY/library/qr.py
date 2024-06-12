@@ -12,7 +12,7 @@ from datetime import datetime
 
 QR_CODES_PER_PAGE = 48  # 1ページあたりのQRコードの数
 
-num_qr = None
+num_qr = 0
 
 def generate_qr_code_pdf(filename, num_qr):
     # PDFの作成
