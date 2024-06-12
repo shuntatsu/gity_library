@@ -1,6 +1,6 @@
 """
 必要pip:
-    pip install qrcode reportlab pywin32
+    pip install qrcode reportlab
 """
 
 import qrcode
