@@ -24,6 +24,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_exempt
 from functools import wraps
+from reportlab.pdfgen import canvas
 import time
 import smtplib
 from email.mime.multipart import MIMEMultipart
@@ -32,6 +33,7 @@ from django.core.mail import send_mail
 import requests
 import json
 from jose import jwt
+import io
 
 from django.http import HttpResponse
 from django.conf import settings
@@ -754,6 +756,17 @@ def book_manage(request, page_num=1):
             # フォームが有効な場合、書籍を保存
             form.save()
             msg = 'Book added successfully.'
+        # Handle QR code generation POST request
+    if request.method == 'POST' and 'num_qr' in request.POST:
+        num_qr = int(request.POST['num_qr'])
+        
+        # Generate QR code PDF
+        buffer = io.BytesIO()
+        generate_qr_code_pdf(buffer, num_qr)
+        buffer.seek(0)
+        
+        # Return PDF as file response
+        return FileResponse(buffer, as_attachment=True, filename='qr_codes.pdf')
     
     # ページネーションを適用
     paginator = Paginator(data, 10)
