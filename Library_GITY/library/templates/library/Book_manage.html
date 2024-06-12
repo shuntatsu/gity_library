@@ -26,14 +26,15 @@
         <input type="submit" value="reset" class="btn btn-primary mt-2">
     </form>
     <hr>
-    <h3>QRコード生成</h3>
     <a href="{% url 'camera_streaming'%}">New Book</a>
-    <hr>
-    <form id="qr-form">
+    <h6>QRコード生成</h6>
+    <form id="qr-form" method="post" action="{% url 'book_manage' %}">
+        {% csrf_token %}
         <label for="num_qr">QR生成枚数：</label>
         <input type="number" id="num_qr" name="num_qr" required>
         <button type="submit" class="btn btn-primary mt-2">作成</button>
     </form>
+    <hr>
     <table class="table">
         <tr>
             <th>ID</th>
