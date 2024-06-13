@@ -10,7 +10,7 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from django.conf import settings
 from django.db.models import Q
-from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
+from django.http import HttpResponse, JsonResponse, HttpResponseRedirect, FileResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.utils import timezone
@@ -37,7 +37,7 @@ import io
 
 from django.http import HttpResponse
 from django.conf import settings
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.urls import reverse_lazy, reverse
 from django.utils.http import urlencode
 from django.contrib import auth
@@ -738,6 +738,7 @@ def book_delete(request, num):
     }
     return render(request, 'library/Book_delete.html', params)
 
+# ログインが必要なページであることを示すデコレータ
 @user_passes_test(lambda u: u.is_superuser, login_url='/library/login/')
 def book_manage(request, page_num=1):
     """
@@ -766,7 +767,7 @@ def book_manage(request, page_num=1):
             
             # Return PDF as file response
             return FileResponse(buffer, as_attachment=True, filename='qr_codes.pdf')
-    
+        
     # ページネーションを適用
     paginator = Paginator(data, 10)
     paginated_data = paginator.get_page(page_num)
