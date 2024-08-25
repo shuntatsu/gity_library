@@ -2,6 +2,8 @@ services:
   web:
     build: ./django-gity
     command: gunicorn gitylibrary.wsgi:application --bind 0.0.0.0:8000
+    volumes:
+      - static_volume:/home/app/web/staticfiles
     expose:
       - 8000
     env_file:
@@ -13,15 +15,21 @@ services:
   db:
     image: postgres:16
     volumes:
-      - ./gity_db:/var/lib/postgresql/data/
+      - gity_db:/var/lib/postgresql/data/
     env_file:
       - ./.env.prod.db
     restart: always
 
   nginx:
     build: ./nginx
+    volumes:
+      - static_volume:/home/app/web/staticfiles
     ports:
       - 80:80
     depends_on:
       - web
     restart: always
+
+volumes:
+  gity_db:
+  static_volume:
