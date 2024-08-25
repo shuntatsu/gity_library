@@ -1,0 +1,31 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>GityLibrary</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/registration.css'%}"/>
+    <!-- 外部CSSファイルのリンク -->
+</head>    
+
+<body class="container">
+    
+    <main>
+        {% if qr_data %}
+        <h1>Line: {{ qr_data.0.line_code }}</h1>
+        <h1>Instagram: {{ qr_data.0.instagram_code }}</h1>
+        {% else %}
+        <p>QR コードが登録されていません。</p>
+        {% endif %}
+        <a href="/library/qr_registration">登録</a>
+
+        <h3><a href="{%url 'library'%}">戻る</a></h3>
+    </main>
+    
+</body>
+
+</html>

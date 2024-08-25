@@ -1,0 +1,49 @@
+<!--借りるページ-->
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>仮GityLibrary</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <!-- 外部CSSファイルのリンク -->
+    <link rel="stylesheet" href="css/library.css"> 
+</head>    
+
+<body class="container">
+    <nav>
+        <h1 class="display-4 text-primary">{{object.book_name}}</h1>
+    </nav>
+
+    <img src="{{ object.image_link }}" alt="Book Image">
+    
+    <main>
+        <table class="table">
+            <tr>
+                <th>ID</th>
+                <th>{{object.id}}</th>
+            </tr>
+            <tr>
+                <th>バーコード</th>
+                <th>{{object.bar_code}}</th>
+            </tr>
+            <tr>
+                <th>著者</th>
+                <th>{{object.author_name}}</th>
+            </tr> 
+            <tr>
+                <th>あらすじ</th>
+                <th>{{object.description}}</th>
+            </tr> 
+            <tr>
+                <th>所蔵数</th>
+                <th>{{object.quantity}}</th>
+            </tr> 
+            <tr>
+                <th>追加日</th>
+                <th>{{object.book_add_date}}</th>
+            </tr> 
+    </main>
+</body>

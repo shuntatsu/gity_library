@@ -1,0 +1,91 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>図書館 - ほしい本リスト</title>
+  <link rel="stylesheet" type="text/css" href="{% static 'css/want_book.css'%}"/>
+</head>
+<body>
+  <header>
+    <h1>図書館 - ほしい本リスト</h1>
+  </header>
+  
+  <main>
+    <section id="wishlist-rotation">
+      <h2>みんなのほしい本</h2>
+      <div id="rotation-container">
+        {% for book in books %}
+          <div class="rotation-item" data-book-id="{{ book.id }}">
+            <img src="{{ book.cover_url }}" alt="Book Cover">
+            <h3>{{ book.title }}</h3>
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+    
+    <section id="wishlist-form">
+      <h2>ほしい本を追加</h2>
+      <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">追加</button>
+      </form>
+    </section>
+    
+    <section id="wishlist-list">
+      <h2>ほしい本リスト</h2>
+      <ul>
+        {% for book in books %}
+          <li>
+            <img src="{{ book.cover_url }}" alt="Book Cover">
+            <div class="book-info">
+              <h3>{{ book.title }}</h3>
+              <p class="author">{{ book.author }}</p>
+              <p class="reason">{{ book.reason }}</p>
+              <a href="{{ book.purchase_link }}" target="_blank" class="purchase-link">購入リンク</a>
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+  </main>
+  
+  <script>
+    const rotationItems = document.querySelectorAll('.rotation-item');
+    
+    rotationItems.forEach(item => {
+      item.addEventListener('click', () => {
+        const bookId = item.getAttribute('data-book-id');
+        const book = {{ books|safe }}.find(book => book.id === parseInt(bookId));
+        
+        const detailsPopup = document.createElement('div');
+        const detailsTitle = document.createElement('h3');
+        const detailsAuthor = document.createElement('p');
+        const detailsReason = document.createElement('p');
+        const detailsLink = document.createElement('a');
+        const closeButton = document.createElement('button');
+        
+        detailsTitle.textContent = book.title;
+        detailsAuthor.textContent = `著者: ${book.author}`;
+        detailsReason.textContent = `理由: ${book.reason}`;
+        detailsLink.href = book.purchase_link;
+        detailsLink.textContent = '購入リンク';
+        closeButton.textContent = '閉じる';
+        
+        detailsPopup.appendChild(detailsTitle);
+        detailsPopup.appendChild(detailsAuthor);
+        detailsPopup.appendChild(detailsReason);
+        detailsPopup.appendChild(detailsLink);
+        detailsPopup.appendChild(closeButton);
+        document.body.appendChild(detailsPopup);
+        
+        closeButton.addEventListener('click', () => {
+          document.body.removeChild(detailsPopup);
+        });
+      });
+    });
+  </script>
+</body>
+</html>

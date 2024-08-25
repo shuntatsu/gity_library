@@ -1,0 +1,89 @@
+{% extends 'library/base_book_user_manage.html' %}
+{% load static %}
+{% block title %}本の管理{% endblock %}
+{% block content %}
+
+<body class="container">
+    <h1 class="display-4 text-primary">{{ title }}</h1>
+    <!-- ホームに戻るボタン -->
+    <a href="{% url 'library' %}" class="btn btn-primary mt-2">ホームに戻る</a>
+
+    <p>{{message|safe}}</p>
+    <form action="{% url 'book_manage' 1 %}" method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <input type="submit" value="click" class="btn btn-primary mt-2">
+    </form>
+    <form action="{% url 'book_manage' 1 %}">
+        {% csrf_token %}
+        <input type="submit" value="reset" class="btn btn-primary mt-2">
+    </form>
+    <hr>
+    <a href="{% url 'camera_barcode'%}">New Book</a>
+    <h6>QRコード生成</h6>
+    <form id="qr-form" method="post" action="{% url 'book_manage' 1 %}">
+        {% csrf_token %}
+        <label for="num_qr">QR生成枚数：</label>
+        <input type="number" id="num_qr" name="num_qr" required>
+        <button type="submit" class="btn btn-primary mt-2">作成</button>
+    </form>
+    <hr>
+    <table class="table">
+        <tr>
+            <th>ID</th>
+            <th>タイトル</th>
+            <th>著者</th>
+            <th>バーコード</th>
+            <th>所蔵数</th>
+            <th>追加日</th>
+        </tr>
+        {% for item in data %}
+        <tr>
+            <td>{{item.id}}</td>
+            <td>{{item.book_name}}</td>
+            <td>{{item.author_name}}</td>
+            <td>{{item.bar_code}}</td>
+            <td>{{item.quantity}}</td>
+            <td>{{item.book_add_date}}</td>
+            <td><a href="{% url 'book_delete' item.id %}">Delete</a></td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <ul class="pagination">
+        {% if data.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="{% url 'book_index' 1 %}">&laquo; first</a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="{% url 'book_index' data.previous_page_number %}">&laquo; prev</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <span class="page-link">&laquo; first</span>
+        </li>
+        <li class="page-item disabled">
+            <span class="page-link">&laquo; prev</span>
+        </li>
+        {% endif %}
+        <li class="page-item">
+            <span class="page-link">{{ data.number }}/{{ data.paginator.num_pages }}</span>
+        </li>
+        {% if data.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="{% url 'book_index' data.next_page_number %}">next &raquo;</a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="{% url 'book_index' data.paginator.num_pages %}">last &raquo;</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <span class="page-link">next &raquo;</span>
+        </li>
+        <li class="page-item disabled">
+            <span class="page-link">last &raquo;</span>
+        </li>
+        {% endif %}
+    </ul>
+</body>
+{% endblock %}

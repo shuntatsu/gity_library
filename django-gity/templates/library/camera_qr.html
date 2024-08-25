@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="utf-8">
+    <title>QR Code Scanner</title>
+    <style>
+        #canvas {
+            display: none;
+        }
+
+        #overlay {
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            z-index: 999; /* ウェブカメラの上に表示するための設定 */
+        }
+    </style>
+    <script src="{% static '/js/camera_qr.js' %}"></script>
+</head>
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QRコードリーダー</title>
+</head>
+
+<body>
+    <canvas id="canvas"></canvas>
+    <div id="overlay"></div>
+</body>
+
+</html>

@@ -1,0 +1,11 @@
+仮想環境のアクティベート
+.\gity_library\Scripts\activate 
+仮想環境のディアクティベート
+deactivate
+
+インストール済みパッケージとバージョン書き出し
+pip freeze > requirements.txt
+
+データベースに反映
+python manage.py makemigrations
+python manage.py migrate

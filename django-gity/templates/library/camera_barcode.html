@@ -1,0 +1,23 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="utf-8">
+    <title>バーコード読み込み</title>
+    <style>
+        #canvas {
+            width: 100%;
+            height: auto;
+        }
+    </style>
+    <script src="{% static '/js/camera_streaming.js' %}"></script>
+</head>
+
+<!-- Django テンプレートから埋め込まれた値を data 属性として設定 -->
+<body>
+    <canvas id="canvas"></canvas>
+    <p id="result"></p>
+</body>
+
+</html>
