@@ -1,0 +1,117 @@
+{% extends 'library/base_book_user_manage.html' %}
+{% load static %}
+{% block title %}ユーザーの管理{% endblock %}
+{% block content %}
+
+<body class="container">
+    <h1 class="display-4 text-primary">{{ title }}</h1>
+    <!-- ホームに戻るボタン -->
+    <a href="{% url 'library' %}" class="btn btn-primary mt-2">ホームに戻る</a>
+
+    <p>{{ message|safe }}</p>
+    <form action="{% url 'user_manage' 1 %}" method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <input type="submit" value="click" class="btn btn-primary mt-2">
+    </form>
+    <form action="{% url 'user_manage' 1 %}">
+        {% csrf_token %}
+        <input type="submit" value="reset" class="btn btn-primary mt-2">
+    </form>
+    <hr>
+
+    <table class="table">
+        <tr>
+            <th>利用者</th>
+            <th>現在の合計レンタル数/レンタル上限</th>
+        </tr>
+        {% for user_data in data %}
+        <tr>
+            <td>{{ user_data.user_email }}</td>
+            <td>{{ user_data.current_rental_count }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <hr>
+
+    <p>以下、レンタルしている本の一覧です</p>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>利用者</th>
+                <th>借りている本</th>
+                <th>Issue Date & Extension Count</th>
+                <th>レンタル日</th>
+                <th>返却日</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for issued_data in data %}
+            <tr>
+                <td>{{ issued_data.user_email }}</td>
+                <td>
+                    {% for book in issued_data.issued_books %}
+                    {{ book.book_name }} ({{ book.book_field }})<br>
+                    {% endfor %}
+                </td>
+                <td>
+                    {% for book in issued_data.issued_books %}
+                    {{ book.issue_date }} (Extension Count: {{ book.extension_count }})<br>
+                    {% endfor %}
+                </td>
+                <td>
+                    {% for book in issued_data.issued_books %}
+                    {{ book.issue_date }}<br>
+                    {% endfor %}
+                </td>
+                <td>
+                    {% for book in issued_data.issued_books %}
+                    {{ book.return_date }}<br>
+                    {% endfor %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <ul class="pagination">
+        {% if data.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="{% url 'user_manage' 1 %}">&laquo; first</a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="{% url 'user_manage' data.previous_page_number %}">&laquo; prev</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <span class="page-link">&laquo; first</span>
+        </li>
+        <li class="page-item disabled">
+            <span class="page-link">&laquo; prev</span>
+        </li>
+        {% endif %}
+
+        <li class="page-item">
+            <span class="page-link">{{ data.number }}/{{ data.paginator.num_pages }}</span>
+        </li>
+
+        {% if data.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="{% url 'user_manage' data.next_page_number %}">next &raquo;</a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="{% url 'user_manage' data.paginator.num_pages %}">last &raquo;</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <span class="page-link">next &raquo;</span>
+        </li>
+        <li class="page-item disabled">
+            <span class="page-link">last &raquo;</span>
+        </li>
+        {% endif %}
+    </ul>
+</body>
+{% endblock %}

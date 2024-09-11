@@ -1,0 +1,123 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GITY</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/home.css'%}"/>
+    <script src="{% static '/js/home.js' %}"></script>
+</head>
+
+<body class="container">
+    <nav>
+        <h1 class="display-4 text-primary">GITY LIBRARY</h1>
+        <div class="nav-bar">
+            <div class="nav-links">
+                <div class="topnav">
+                    <input type="checkbox" id="menu-toggle">
+                    <label for="menu-toggle" class="menu-icon">&#9776;</label>
+                    <div class="menu">
+                        <p><a href="{% url 'book_manage' 1 %}">管理者ログイン</a></p>
+                        <p><a href="{% url 'registration'%}">他サイトQRコード登録</a></p>
+                        <p><a href="{% url 'book_list' 1 %}">図書一覧</a></p>
+                        <p><a href="{% url 'user_history'%}">履歴</a></p>
+                        <p><a href="{% url 'logout' %}">ログアウト</a></p>
+                    </div>    
+                </div>
+            </div>
+        </div>
+        
+        <!-- QRコードの表示 -->
+        <div class="qr-code-container">
+            {% if qr_code_url %}
+                <img src="{% static qr_code_url %}" alt="QRコード" class="qr-code-image">
+            {% else %}
+                <p>QRコードがありません。</p>
+            {% endif %}
+
+            <!-- QRコード更新ボタン -->
+            <form method="post" class="qr-code-form">
+                {% csrf_token %}
+                <button type="submit" name="update_qr_button" class="qr-code-button">QRコードを更新する</button>
+            </form>
+        </div>
+
+        <div class="user-info">
+            <h2>ようこそ、{{ user_email }}さん</h2>
+            <h3>現在{{ current_rental_count }}冊貸し出し中です</h3>
+        </div>
+    </nav>
+
+    <main>
+        <section class="wishlist-section">
+            <p><a href="{% url 'want_book' %}">欲しい本</a></p>
+            <!-- 欲しい本のリストを表示 -->
+        </section>
+
+        <section class="rental-section">
+            <h3>借りている本</h3>
+            {% if issued_books %}
+                <table class="table rental-table">
+                    <thead>
+                        <tr>
+                            <th>本の名前</th>
+                            <th>レンタル日</th>
+                            <th>返却日</th>
+                            <th>延長回数</th>
+                            <th>延長</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for book in issued_books %}
+                            <tr>
+                                <td>{{ book.book_name }}</td>
+                                <td>{{ book.issue_date }}</td>
+                                <td>{{ book.return_date }}</td>
+                                <td>{{ book.extension_count }}</td>
+                                <td>
+                                <form method="post" class="extension-form">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="extend_button" value="{{ book.id }}">
+                                    <button type="submit" class="extension-button">延長</button>
+                                </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p>現在、借りている本はありません。</p>
+            {% endif %}
+        </section>
+    </main>
+
+    <section class="contact-section">
+        <div class="contact">
+            <div class="contact-title">
+                <h2>お問い合わせ</h2>
+                <p>ご意見・ご要望などございましたら、お気軽にお問い合わせください。</p>
+            </div>
+
+            <div class="contact-content">
+                <form action="a.php" method="post" name="contact-form" class="contact-form">
+                    <label for="email">メール:</label>
+                    <input name="メールアドレス" type="text" id="email" value="" required /><br>
+                    
+                    <label for="message">お問い合わせ内容：</label><br />
+                    <textarea name="お問い合わせ内容" id="message" placeholder="ここにお問い合わせ内容を入力してください" required></textarea><br>
+                    
+                    <button type="submit" class="submit-button">送信</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="wrapper">
+            <p><small>&copy; 2024 GITY LIBRARY. All rights reserved.</small></p>
+        </div>
+    </footer>
+
+</body>
+</html>

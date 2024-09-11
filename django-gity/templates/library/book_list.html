@@ -1,0 +1,96 @@
+<!--本の一覧ページ-->
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>仮GityLibrary</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <!-- 外部CSSファイルのリンク -->
+</head>
+
+<body class="container">
+    <nav>
+        <h1 class="display-4 text-primary">所蔵本一覧</h1>
+    </nav>
+    <!-- ホームに戻るボタン -->
+    <a href="{% url 'library' %}" class="btn btn-primary mt-2">ホームに戻る</a>
+    
+    <p>{{message|safe}}</p>
+    <form action="{% url 'book_list' 1 %}" method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <tr><th></th><tb>
+        <input type="submit" value="click" class="btn btn-primary mt-2">
+        </tb></tr>
+    </form>
+    <form action="{% url 'book_list' 1 %}">
+        {% csrf_token %}
+        <tr><th></th><tb>
+        <input type="submit" value="reset" class="btn btn-primary mt-2">
+        </tb></tr>
+    </form>
+
+    <main>
+        <table class="table">
+            <tr>
+                <th>画像</th>
+                <th>タイトル</th>
+                <th></th>
+            </tr>
+            {% for item in data %}
+            <tr>
+                <td><img src="{{ item.image_link }}"></td>
+                <td>{{ item.book_name }}</td>
+                <td><a href="/library/detail/{{ item.id }}">detail</a></td>
+            </tr>
+            {% endfor %}
+        </table>
+    </main>
+    <ul class="pagination">
+        {% if data.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="{% url 'book_list' 1 %}">
+                &laquo; first</a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="{% url 'book_list' data.previous_page_number %}">
+                &laquo; prev</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <span class="page-link">&laquo; first</span>
+        </li>
+        <li class="page-item disabled">
+            <span class="page-link">&laquo; prev</span>
+        </li>
+        {% endif %}
+        <li class="page-item">
+            <span class="page-link">
+                {{ data.number }}/{{ data.paginator.num_pages }}</span>
+        </li>
+        {% if data.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="{% url 'book_list' data.next_page_number %}">
+                next &raquo;</a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="{% url 'book_list' data.paginator.num_pages %}">
+                last &raquo;</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <span class="page-link">next &raquo;</span>
+        </li>
+        <li class="page-item disabled">
+            <span class="page-link">last &raquo;</span>
+        </li>
+        {% endif %}
+    </ul>
+    
+</body>
+
+</html>
+

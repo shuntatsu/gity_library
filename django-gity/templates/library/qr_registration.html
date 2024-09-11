@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="utf-8">
+    <title>QR Code Scanner</title>
+    <script src="{% static '/js/registration.js' %}"></script>
+</head>
+
+<body>
+    <canvas id="canvas"></canvas>
+    <div id="overlay"></div>
+
+    <script src="https://cdn.rawgit.com/cozmo/jsQR/master/dist/jsQR.js"></script>
+    <script>
+        var video = document.createElement('video');
+        var canvasElement = document.getElementById('canvas');
+        var canvas = canvasElement.getContext('2d');
+        var isReadQR = false;
+        var lastScannedTime = 0;
+
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+            .then((stream) => {
+                video.srcObject = stream;
+                video.setAttribute('playsinline', true);
+                video.play();
+                requestAnimationFrame(tick);
+            })
+            .catch((error) => {
+                console.error('Error accessing camera:', error);
+            });
+
+        function tick() {
+            if (!isReadQR && video.readyState === video.HAVE_ENOUGH_DATA) {
+                canvasElement.height = video.videoHeight;
+                canvasElement.width = video.videoWidth;
+                canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
+                var imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
+                var code = jsQR(imageData.data, imageData.width, imageData.height, {
+                    inversionAttempts: 'dontInvert',
+                });
+                if (code && code.data) {
+                    var qrCodeValue = code.data;
+                    isReadQR = true;
+
+                    var urlRegex = /^(?:https?:\/\/)?(?:www\.)?[a-zA-Z0-9-]+\.[a-zA-Z0-9]+(?:\/[^\/?#]+)?(?:\?[^#]+)?(?:#.*)?$/;
+
+                    function getParameterValue(key, url) {
+                        if (!urlRegex.test(url)) {
+                            return '';
+                        }
+                        var queryString = url.split('?')[1];
+                        if (!queryString) {
+                            return '';
+                        }
+                        var params = queryString.split('&');
+                        for (var i = 0; i < params.length; i++) {
+                            var pair = params[i].split('=');
+                            if (pair[0] === key) {
+                                return decodeURIComponent(pair[1]);
+                            }
+                        }
+                        return '';
+                    }
+
+                    try {
+                        if (urlRegex.test(qrCodeValue)) {
+                            var url = new URL(qrCodeValue);
+                            var path = url.pathname;
+                            var parts = path.split('/');
+                            var username = parts.pop();
+                            var sitename = url.hostname;
+
+                            var xhr = new XMLHttpRequest();
+                            var url = '/library/qr_registration?user_id=' + username + '&sitename=' + sitename; // POSTリクエストを送信するURL
+                            xhr.open('POST', url, true);
+                            xhr.setRequestHeader('Content-Type', 'application/json');
+                            xhr.onreadystatechange = function () {
+                                if (xhr.readyState === XMLHttpRequest.DONE) {
+                                    if (xhr.status === 200) {
+                                        var redirectURL = "/library/registration";
+                                        window.location.href = redirectURL; // リダイレクト
+                                    } else {
+                                        console.error('登録できませんでした');
+                                    }
+                                }
+                            };
+                            var params = JSON.stringify({ user_id: username, sitename: sitename }); // リクエストパラメーターを設定
+                            xhr.send(params); // リクエストを送信
+                        } else {
+                            console.log('入力はURL形式ではありません。');
+                        }
+                    } catch (error) {
+                        console.error('An error occurred while parsing the URL:', error);
+                    }
+                }
+            }
+            requestAnimationFrame(tick);
+        }
+    </script>
+</body>
+
+</html>
